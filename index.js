@@ -4,7 +4,10 @@ const url = require('url')
 const net = require('net');
 const http = require('http');
 
-function createProxyServer(callback = () => {}) {
+function createProxyServer(
+  onRequest = () => {}, 
+  onClientSocketError = console.error
+) {
   const proxyServer = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': 'text/plain'
@@ -14,7 +17,9 @@ function createProxyServer(callback = () => {}) {
   });
 
   proxyServer.on('connect', (req, clientSocket, head) => {
-    callback(req);
+    onRequest(req);
+
+    clientSocket.on('error', error => onClientSocketError(error, req));
 
     const {
       port,

@@ -24,11 +24,24 @@ instance that can be bound via `listen()`. The callback function
 will be called at each request:
 
 ```js
-const createProxyServer = require('http-tunneling-proxy');
+const createProxyServer = require('http-tunneling-proxy')
+ 
+const onRequest = req => console.log(`${req.method} ${req.url}`)
 
-const proxyServer = createProxyServer(req => {
-  console.log(`${req.method} ${req.url}`);
-});
+const onClientSocketError = (error, req) => {
+  console.error(
+    `clientSocket error for request: ${req.method} ${req.url}`, 
+    error
+  )
+}
 
-proxyServer.listen(3030);
+const proxyServer = createProxyServer(onRequest, onClientSocketError)
+
+proxyServer.on('error', e => console.error('proxyServer error', e))
+
+const port = 3030
+proxyServer.listen(port)
+
+console.log('litening on port:', port)
+
 ```
