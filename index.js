@@ -4,9 +4,27 @@ const url = require('url')
 const net = require('net');
 const http = require('http');
 
+const defaultOnClientSocketError = request => error => {
+  console.error(
+    `clientSocket error for request: ${request.method} ${request.url}`, 
+    error
+  )
+}
+
+const defaultOnServerSocketError = request => error => {
+  console.error(
+    `serverSocket error for request: ${request.method} ${request.url}`,
+    error
+  )
+  request.destroy()
+}
+
 function createProxyServer(
   onRequest = () => {}, 
-  onClientSocketError = console.error
+  {
+    onClientSocketError = defaultOnClientSocketError,
+    onServerSocketError = defaultOnServerSocketError
+  } = {}
 ) {
   const proxyServer = http.createServer((req, res) => {
     res.writeHead(200, {
@@ -19,7 +37,7 @@ function createProxyServer(
   proxyServer.on('connect', (req, clientSocket, head) => {
     onRequest(req);
 
-    clientSocket.on('error', error => onClientSocketError(error, req));
+    clientSocket.on('error', onClientSocketError(req));
 
     const {
       port,
@@ -37,6 +55,8 @@ function createProxyServer(
       serverSocket.pipe(clientSocket);
       clientSocket.pipe(serverSocket);
     });
+
+    serverSocket.on('error', onServerSocketError(req));
   });
 
   return proxyServer;

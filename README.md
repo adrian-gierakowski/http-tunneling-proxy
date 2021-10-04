@@ -28,20 +28,12 @@ const createProxyServer = require('http-tunneling-proxy')
  
 const onRequest = req => console.log(`${req.method} ${req.url}`)
 
-const onClientSocketError = (error, req) => {
-  console.error(
-    `clientSocket error for request: ${req.method} ${req.url}`, 
-    error
-  )
-}
-
-const proxyServer = createProxyServer(onRequest, onClientSocketError)
+const proxyServer = createProxyServer(onRequest)
 
 proxyServer.on('error', e => console.error('proxyServer error', e))
 
 const port = 3030
 proxyServer.listen(port)
 
-console.log('litening on port:', port)
-
+console.log('listening on port:', port)
 ```
